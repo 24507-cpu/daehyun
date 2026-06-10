@@ -1,355 +1,179 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI TTS 음성 변환기</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🥦 냉장고 파먹기 연구소</title>
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
-
-    .container {
-      width: min(900px, 92%);
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-
-    .info {
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .option-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    select, input {
-      height: 44px;
-      padding: 0 12px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 180px;
-      resize: vertical;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      font-size: 16px;
-      line-height: 1.5;
-      outline: none;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea:focus, select:focus, input:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
-    }
-
-    .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    button, .download-link {
-      border: none;
-      border-radius: 12px;
-      padding: 0 18px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    button:hover, .download-link:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-
-    .make-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .download-link {
-      background: #7e57c2;
-      color: white;
-    }
-
+    body { font-family: 'Malgun Gothic', sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; line-height: 1.6; background-color: #f9f9f9; }
+    .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .hidden { display: none; }
-
-    .status {
-      min-height: 24px;
-      margin-top: 14px;
-      color: #555;
-      font-size: 14px;
-    }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #f7f9fb;
-      border: 1px solid #edf1f5;
-    }
-
-    audio {
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .help {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #777;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 700px) {
-      .option-box { grid-template-columns: 1fr; }
-      .button-row { justify-content: stretch; }
-      button, .download-link { width: 100%; }
-    }
+    button { background-color: #2E7D32; color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 14px; }
+    button:hover { background-color: #1B5E20; }
+    input { width: 75%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+    #recipe-steps p { background: #f1f8e9; padding: 10px; border-radius: 6px; margin: 5px 0; border-left: 4px solid #8bc34a; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>AI TTS 음성 변환기</h1>
-    <div class="subtitle">텍스트를 AI 음성 mp3 파일로 변환합니다</div>
 
-    <div class="info">
-      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI TTS API → mp3 음성 반환<br />
-      API Key는 index.html에 들어가지 않고 Apps Script의 스크립트 속성에 저장됩니다.
-    </div>
-
-    <div class="option-box">
-      <select id="modelSelect">
-        <option value="tts-1">tts-1 빠른 생성</option>
-        <option value="tts-1-hd">tts-1-hd 고품질</option>
-      </select>
-
-      <select id="voiceSelect">
-        <option value="alloy">alloy</option>
-        <option value="echo">echo</option>
-        <option value="fable">fable</option>
-        <option value="onyx">onyx</option>
-        <option value="nova">nova</option>
-        <option value="shimmer">shimmer</option>
-      </select>
-
-      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="속도" />
-    </div>
-
-    <div>
-      <div class="label">변환할 텍스트</div>
-      <textarea id="textInput" placeholder="음성으로 바꿀 문장을 입력하세요. 예: 안녕하세요. 오늘은 Firebase와 OpenAI API를 활용한 웹페이지 제작을 배워보겠습니다."></textarea>
-    </div>
-
-    <div class="button-row">
-      <button class="clear-btn" id="clearBtn">초기화</button>
-      <button class="make-btn" id="makeBtn">음성 만들기</button>
-    </div>
-
-    <div id="status" class="status"></div>
-
-    <div id="resultBox" class="result-box hidden">
-      <div class="label">생성된 음성</div>
-      <audio id="audioPlayer" controls></audio>
-      <div class="button-row">
-        <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">mp3 다운로드</a>
-      </div>
-    </div>
-
-    <div class="help">
-      긴 문장은 생성 시간이 오래 걸릴 수 있습니다. 처음에는 짧은 문장으로 테스트해보세요.<br />
-      속도는 0.25부터 4.0까지 조절할 수 있습니다.
+  <h1>🥦 지구를 구하는 AI 레시피 연구소</h1>
+  
+  <div id="auth-section" class="card">
+    <h3>로그인 후 나만의 레시피 북을 채워보세요!</h3>
+    <button id="btn-login">Google 계정으로 로그인</button>
+    <div id="user-info" class="hidden">
+      <p>👋 <span id="user-name" style="font-weight: bold;"></span>님 환영합니다! 환경을 함께 지켜요. 🌍</p>
+      <button id="btn-logout" style="background-color: #757575;">로그아웃</button>
     </div>
   </div>
 
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDNMIktE288seW2Mr5YgksYFeAP3SNl8YyQZFa1DuvD0N_8pjRLDmxkZBYyQ4WGPmt/exec';
+  <div class="card">
+    <h3>남은 재료 입력</h3>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="ingredients-input" placeholder="예: 찬밥, 쌈장, 먹다남은 치킨">
+      <button id="btn-generate">요리 시작! 🍳</button>
+    </div>
+  </div>
 
-    const textInput = document.getElementById('textInput');
-    const modelSelect = document.getElementById('modelSelect');
-    const voiceSelect = document.getElementById('voiceSelect');
-    const speedInput = document.getElementById('speedInput');
-    const makeBtn = document.getElementById('makeBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const statusBox = document.getElementById('status');
-    const resultBox = document.getElementById('resultBox');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const downloadLink = document.getElementById('downloadLink');
+  <div id="result-section" class="card hidden">
+    <h2 id="recipe-title" style="color: #2E7D32;">요리 이름</h2>
+    <p>⏱️ <b>예상 조리 시간:</b> <span id="cooking-time"></span></p>
+    <p style="color: #E65100; font-weight: bold; background: #FFF3E0; padding: 10px; border-radius: 6px;">🌱 <b>지구 구하기 미션:</b> <span id="eco-msg"></span></p>
+    <hr style="border: 0.5px solid #eee;">
+    
+    <div id="recipe-steps"></div>
+    
+    <hr style="border: 0.5px solid #eee; margin-top: 20px;">
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <button id="btn-tts" style="background-color: #0288D1;">🔊 음성 가이드 듣기</button>
+      <button id="btn-save" class="hidden" style="background-color: #FFA000;">⭐ 나의 요리책에 저장</button>
+    </div>
+  </div>
 
-    makeBtn.addEventListener('click', makeSpeech);
-    clearBtn.addEventListener('click', clearPage);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    textInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        makeSpeech();
+    // ────────────────────────────────────────────────────────
+    // ✅ 보내주신 진짜 파이어베이스 고유 정보가 연동 완료되었습니다.
+    // ────────────────────────────────────────────────────────
+    const firebaseConfig = {
+  apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
+  authDomain: "test-ba7e7.firebaseapp.com",
+  databaseURL: "https://test-ba7e7-default-rtdb.firebaseio.com",
+  projectId: "test-ba7e7",
+  storageBucket: "test-ba7e7.firebasestorage.app",
+  messagingSenderId: "700659947641",
+  appId: "1:700659947641:web:a75ebb602ef374f1319ca8",
+  measurementId: "G-M44MDJQM05"
+};
+
+    // ────────────────────────────────────────────────────────
+    // ⚠️ [마지막 설정] 구글 앱스크립트 배포 후 나온 웹 앱 URL 주소를 여기에 꼭 넣으세요!
+    // ────────────────────────────────────────────────────────
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzK2MdHvqC66B7Qhd-wNYsOpSeKmS3caGGfHVOhYm7MNRmhbDY55umG0kWVI315MeU8/exec";
+
+    // Firebase 및 기본 변수 초기화
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let currentRecipe = null; 
+
+    // 로그인 상태 감지 (회원 인증 기능 연동)
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('btn-login').classList.add('hidden');
+        document.getElementById('user-info').classList.remove('hidden');
+        document.getElementById('user-name').innerText = user.displayName;
+        if(currentRecipe) document.getElementById('btn-save').classList.remove('hidden');
+      } else {
+        currentUser = null;
+        document.getElementById('btn-login').classList.remove('hidden');
+        document.getElementById('user-info').classList.add('hidden');
+        document.getElementById('btn-save').classList.add('hidden');
       }
     });
 
-    async function makeSpeech() {
-      const text = textInput.value.trim();
-      const model = modelSelect.value;
-      const voice = voiceSelect.value;
-      const speed = Number(speedInput.value || 1.0);
+    // 로그인 및 로그아웃 버튼 이벤트
+    document.getElementById('btn-login').addEventListener('click', () => signInWithPopup(auth, provider));
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-      if (!text) {
-        alert('음성으로 변환할 텍스트를 입력해주세요.');
-        return;
-      }
+    // 레시피 생성 기능 (Generative AI 연동 - GAS 중계 방식)
+    document.getElementById('btn-generate').addEventListener('click', async () => {
+      const ingredients = document.getElementById('ingredients-input').value;
+      if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
 
-      if (speed < 0.25 || speed > 4.0) {
-        alert('속도는 0.25부터 4.0 사이로 입력해주세요.');
-        return;
-      }
+      document.getElementById('btn-generate').innerText = "AI 셰프가 고민 중...🤔";
+      document.getElementById('btn-generate').disabled = true;
 
       try {
-        setLoading(true);
-        resultBox.classList.add('hidden');
-        statusBox.textContent = 'Apps Script 서버에 TTS 요청을 보내는 중입니다.';
-
-        const response = await fetch(APPS_SCRIPT_URL, {
+        const response = await fetch(GAS_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            type: 'tts',
-            text: text,
-            model: model,
-            voice: voice,
-            speed: speed
-          })
+          body: JSON.stringify({ ingredients: ingredients })
         });
+        
+        const recipe = await response.json();
+        currentRecipe = recipe; 
 
-        const data = await response.json();
+        // 데이터 바인딩
+        document.getElementById('recipe-title').innerText = recipe.recipeName;
+        document.getElementById('cooking-time').innerText = recipe.cookingTime;
+        document.getElementById('eco-msg').innerText = recipe.ecoMessage;
+        
+        const stepsContainer = document.getElementById('recipe-steps');
+        stepsContainer.innerHTML = recipe.steps.map((step, idx) => `<p><b>${idx+1}단계:</b> ${step}</p>`).join('');
+        
+        document.getElementById('result-section').classList.remove('hidden');
+        if (currentUser) document.getElementById('btn-save').classList.remove('hidden');
 
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        if (!data.audioBase64) {
-          throw new Error('음성 데이터를 받지 못했습니다.');
-        }
-
-        const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
-
-        audioPlayer.src = audioUrl;
-        downloadLink.href = audioUrl;
-        downloadLink.download = makeFileName();
-        resultBox.classList.remove('hidden');
-        statusBox.textContent = '음성 생성 완료';
-      } catch (error) {
-        console.error(error);
-        statusBox.textContent = '요청 실패';
-        alert('오류가 발생했습니다.\n\n' + error.message);
+      } catch (err) {
+        alert("레시피를 가져오는 데 실패했습니다. 다시 시도해 주세요.");
+        console.error(err);
       } finally {
-        setLoading(false);
+        document.getElementById('btn-generate').innerText = "요리 시작! 🍳";
+        document.getElementById('btn-generate').disabled = false;
       }
-    }
+    });
 
-    function base64ToAudioUrl(base64, mimeType) {
-      const byteCharacters = atob(base64);
-      const byteArrays = [];
+    // TTS(음성 합성 API) 기능 활용하기
+    document.getElementById('btn-tts').addEventListener('click', () => {
+      if(!currentRecipe) return;
+      window.speechSynthesis.cancel(); // 현재 재생 중인 소리 초기화
+      
+      const introText = `${currentRecipe.recipeName} 요리를 시작합니다. 예상 소요시간은 ${currentRecipe.cookingTime}입니다. `;
+      const stepsText = currentRecipe.steps.map((step, idx) => `${idx+1}단계, ${step}`).join('. ');
+      const closingText = ` 오늘의 지구 구하기 미션인 ${currentRecipe.ecoMessage}를 기억하며 맛있게 드세요!`;
+      
+      const utterance = new SpeechSynthesisUtterance(introText + stepsText + closingText);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 1.0; 
+      window.speechSynthesis.speak(utterance);
+    });
 
-      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512);
-        const byteNumbers = new Array(slice.length);
-
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
+    // Firestore NoSQL 데이터베이스 연동 및 저장 기능
+    document.getElementById('btn-save').addEventListener('click', async () => {
+      if(!currentUser || !currentRecipe) return;
+      try {
+        await addDoc(collection(db, "userRecipes"), {
+          uid: currentUser.uid,
+          userEmail: currentUser.email,
+          recipeName: currentRecipe.recipeName,
+          cookingTime: currentRecipe.cookingTime,
+          ecoMessage: currentRecipe.ecoMessage,
+          steps: currentRecipe.steps,
+          savedAt: new Date()
+        });
+        alert("⭐ '나의 요리책'에 안전하게 저장되었습니다!");
+      } catch (e) {
+        console.error(e);
+        alert("저장 중 오류가 발생했습니다.");
       }
-
-      const blob = new Blob(byteArrays, { type: mimeType });
-      return URL.createObjectURL(blob);
-    }
-
-    function makeFileName() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hour = String(now.getHours()).padStart(2, '0');
-      const minute = String(now.getMinutes()).padStart(2, '0');
-      return `tts-${year}${month}${day}-${hour}${minute}.mp3`;
-    }
-
-    function setLoading(isLoading) {
-      makeBtn.disabled = isLoading;
-      makeBtn.textContent = isLoading ? '생성 중...' : '음성 만들기';
-    }
-
-    function clearPage() {
-      textInput.value = '';
-      statusBox.textContent = '';
-      audioPlayer.removeAttribute('src');
-      downloadLink.href = '#';
-      resultBox.classList.add('hidden');
-    }
+    });
   </script>
 </body>
 </html>
-
-
