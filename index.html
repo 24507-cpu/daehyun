@@ -55,7 +55,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ✅ 파이어베이스 설정값 연동 완료
+    // 파이어베이스 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -67,10 +67,9 @@
       measurementId: "G-M44MDJQM05"
     };
 
-    // ✅ 제공해주신 새로운 웹 앱 URL 반영 완료
+    // 최신 웹 앱 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzTav-ahhh3VufTKoCqqlP3UBP6kVcy-bD-_Vs3ki7aDwM-Rl-5MAt9upqQvZhjEtzH/exec";
 
-    // Firebase 및 기본 변수 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -79,13 +78,13 @@
     let currentUser = null;
     let currentRecipe = null; 
 
-    // 로그인 상태 감지 (회원 인증 기능 연동)
+    // 로그인 상태 감지
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
         document.getElementById('btn-login').classList.add('hidden');
         document.getElementById('user-info').classList.remove('hidden');
-        document.getElementById('user-name').innerText = user.displayName;
+        document.getElementById('user-name').innerText = user.displayName || "사용자";
         if(currentRecipe) document.getElementById('btn-save').classList.remove('hidden');
       } else {
         currentUser = null;
@@ -95,9 +94,24 @@
       }
     });
 
-    // 로그인 및 로그아웃 버튼 이벤트
+    // 로그인 버튼 이벤트
     document.getElementById('btn-login').addEventListener('click', () => signInWithPopup(auth, provider));
-    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+    
+    // 🚨 [수정] 로그아웃 버튼 이벤트 (파이어베이스 에러가 나도 강제로 로그인창 띄우는 방어막 추가)
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("파이어베이스 로그아웃 통신 에러 무시 처리:", error);
+      } finally {
+        // 에러 여부와 상관없이 내 화면은 무조건 로그아웃 상태로 리셋시킴
+        currentUser = null;
+        document.getElementById('btn-login').classList.remove('hidden');
+        document.getElementById('user-info').classList.add('hidden');
+        document.getElementById('btn-save').classList.add('hidden');
+        alert("로그아웃 되었습니다.");
+      }
+    });
 
     // 레시피 생성 기능
     document.getElementById('btn-generate').addEventListener('click', async () => {
@@ -121,7 +135,6 @@
         
         currentRecipe = recipe; 
 
-        // 데이터 화면 바인딩
         document.getElementById('recipe-title').innerText = recipe.recipeName;
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
@@ -141,7 +154,7 @@
       }
     });
 
-    // TTS(음성 합성 API) 기능 활용하기
+    // TTS 기능
     document.getElementById('btn-tts').addEventListener('click', () => {
       if(!currentRecipe) return;
       window.speechSynthesis.cancel(); 
@@ -156,7 +169,7 @@
       window.speechSynthesis.speak(utterance);
     });
 
-    // Firestore NoSQL 데이터베이스 연동 및 저장 기능
+    // 저장 기능
     document.getElementById('btn-save').addEventListener('click', async () => {
       if(!currentUser || !currentRecipe) return;
       try {
