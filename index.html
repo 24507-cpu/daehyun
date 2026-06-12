@@ -55,7 +55,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ✅ 파이어베이스 설정값 입력 완료
+    // ✅ 파이어베이스 설정값 연동 완료
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -67,8 +67,8 @@
       measurementId: "G-M44MDJQM05"
     };
 
-    // ✅ 구글 앱스크립트(GAS) 새로 발급받은 웹 앱 URL 입력 완료
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzI5qGtkvjichhH4UApVVehlBB82jyupiGj4a9gaS5SsjJ_3Rhci5oAr9QHKwrdruV_/exec";
+    // ✅ 제공해주신 새로운 웹 앱 URL 반영 완료
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTav-ahhh3VufTKoCqqlP3UBP6kVcy-bD-_Vs3ki7aDwM-Rl-5MAt9upqQvZhjEtzH/exec";
 
     // Firebase 및 기본 변수 초기화
     const app = initializeApp(firebaseConfig);
@@ -99,7 +99,7 @@
     document.getElementById('btn-login').addEventListener('click', () => signInWithPopup(auth, provider));
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-    // 레시피 생성 기능 (Generative AI 연동 - 구글 제미나이 규격 최적화)
+    // 레시피 생성 기능
     document.getElementById('btn-generate').addEventListener('click', async () => {
       const ingredients = document.getElementById('ingredients-input').value;
       if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
