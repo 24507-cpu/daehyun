@@ -55,7 +55,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 파이어베이스 프로젝트 설정 정보
+    // 🚨 요청하신 최신 파이어베이스 설정값으로 완전히 교체 완료했습니다!
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -63,11 +63,11 @@
       projectId: "test-ba7e7",
       storageBucket: "test-ba7e7.firebasestorage.app",
       messagingSenderId: "700659947641",
-      appId: "1:700659947641:web:a75ebb602ef374f1319ca8",
-      measurementId: "G-M44MDJQM05"
+      appId: "1:700659947641:web:e62c9601ae47aeaa319ca8",
+      measurementId: "G-6WQ79EBQJY"
     };
 
-    // ✅ 새로 보내주신 구글 웹 앱 URL 반영 완료!
+    // 검증된 구글 웹 앱 URL 주소
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwoFmjBFJWJS26MBIjaaRrEABoiXBT9yZPQJykPiCyi9q8C1xuiTQL8B6PWTpYTFtP7/exec";
 
     // 시스템 초기화
@@ -96,7 +96,16 @@
     });
 
     // 구글 로그인 실행
-    document.getElementById('btn-login').addEventListener('click', () => signInWithPopup(auth, provider));
+    document.getElementById('btn-login').addEventListener('click', () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          console.log("로그인 성공:", result.user);
+        })
+        .catch((error) => {
+          console.error("로그인 에러 상세:", error);
+          alert("로그인 창을 띄우지 못했습니다. 파이어베이스 콘솔의 승인된 도메인 설정을 확인해주세요. 에러코드: " + error.code);
+        });
+    });
     
     // 안전한 로그아웃 방어막 로직
     document.getElementById('btn-logout').addEventListener('click', async () => {
