@@ -55,24 +55,20 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ────────────────────────────────────────────────────────
-    // ✅ 보내주신 진짜 파이어베이스 고유 정보가 연동 완료되었습니다.
-    // ────────────────────────────────────────────────────────
+    // ✅ 파이어베이스 설정값 입력 완료
     const firebaseConfig = {
-  apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
-  authDomain: "test-ba7e7.firebaseapp.com",
-  databaseURL: "https://test-ba7e7-default-rtdb.firebaseio.com",
-  projectId: "test-ba7e7",
-  storageBucket: "test-ba7e7.firebasestorage.app",
-  messagingSenderId: "700659947641",
-  appId: "1:700659947641:web:a75ebb602ef374f1319ca8",
-  measurementId: "G-M44MDJQM05"
-};
+      apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
+      authDomain: "test-ba7e7.firebaseapp.com",
+      databaseURL: "https://test-ba7e7-default-rtdb.firebaseio.com",
+      projectId: "test-ba7e7",
+      storageBucket: "test-ba7e7.firebasestorage.app",
+      messagingSenderId: "700659947641",
+      appId: "1:700659947641:web:a75ebb602ef374f1319ca8",
+      measurementId: "G-M44MDJQM05"
+    };
 
-    // ────────────────────────────────────────────────────────
-    // ⚠️ [마지막 설정] 구글 앱스크립트 배포 후 나온 웹 앱 URL 주소를 여기에 꼭 넣으세요!
-    // ────────────────────────────────────────────────────────
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzK2MdHvqC66B7Qhd-wNYsOpSeKmS3caGGfHVOhYm7MNRmhbDY55umG0kWVI315MeU8/exec";
+    // ✅ 구글 앱스크립트(GAS) 웹 앱 URL 입력 완료
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyPXfY80Q0Mh_jcB8spBOH1sLPt1s1Vp26XIBWnMtS7WkhNg0t5p-LYc5KTgJCL55Hu/exec";
 
     // Firebase 및 기본 변수 초기화
     const app = initializeApp(firebaseConfig);
@@ -103,7 +99,7 @@
     document.getElementById('btn-login').addEventListener('click', () => signInWithPopup(auth, provider));
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-    // 레시피 생성 기능 (Generative AI 연동 - GAS 중계 방식)
+    // 레시피 생성 기능 (Generative AI 연동 - 구글 제미나이 규격 최적화)
     document.getElementById('btn-generate').addEventListener('click', async () => {
       const ingredients = document.getElementById('ingredients-input').value;
       if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
@@ -118,9 +114,14 @@
         });
         
         const recipe = await response.json();
+        
+        if (recipe.error) {
+          throw new Error(recipe.error);
+        }
+        
         currentRecipe = recipe; 
 
-        // 데이터 바인딩
+        // 데이터 화면 바인딩
         document.getElementById('recipe-title').innerText = recipe.recipeName;
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
@@ -133,7 +134,7 @@
 
       } catch (err) {
         alert("레시피를 가져오는 데 실패했습니다. 다시 시도해 주세요.");
-        console.error(err);
+        console.error("Error Detail:", err);
       } finally {
         document.getElementById('btn-generate').innerText = "요리 시작! 🍳";
         document.getElementById('btn-generate').disabled = false;
@@ -143,7 +144,7 @@
     // TTS(음성 합성 API) 기능 활용하기
     document.getElementById('btn-tts').addEventListener('click', () => {
       if(!currentRecipe) return;
-      window.speechSynthesis.cancel(); // 현재 재생 중인 소리 초기화
+      window.speechSynthesis.cancel(); 
       
       const introText = `${currentRecipe.recipeName} 요리를 시작합니다. 예상 소요시간은 ${currentRecipe.cookingTime}입니다. `;
       const stepsText = currentRecipe.steps.map((step, idx) => `${idx+1}단계, ${step}`).join('. ');
