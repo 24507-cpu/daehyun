@@ -55,7 +55,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 유저님이 올려주신 최신 파이어베이스 설정값 일치 완료
+    // 유저님의 파이어베이스 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -67,10 +67,9 @@
       measurementId: "G-6WQ79EBQJY"
     };
 
-    // ✅ 방금 새로 보내주신 구글 웹 앱 URL 주소 반영 완료!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzY9vxmF6jBzMklE6gmc95y-1_4EQ1EoneqgFqK5KQOuCA0gfmSH1rRFSoXx7vauzsT/exec";
+    // 🚨 방금 올려주신 최신 클로드 연동 웹 앱 주소 탑재 완료!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyo_arMvQDdMw5SQxel1H3DewhWx6Gy5pJDvokztwTjVyqgkwqQ3fVFcWRXHyj1UVth/exec";
 
-    // 시스템 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -79,7 +78,7 @@
     let currentUser = null;
     let currentRecipe = null; 
 
-    // 유저 로그인 상태 실시간 체크
+    // 로그인 상태 감지
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -95,34 +94,18 @@
       }
     });
 
-    // 구글 로그인 실행
+    // 구글 로그인
     document.getElementById('btn-login').addEventListener('click', () => {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          console.log("로그인 성공:", result.user);
-        })
-        .catch((error) => {
-          console.error("로그인 에러:", error);
-          alert("로그인에 실패했습니다. 에러코드: " + error.code);
-        });
+      signInWithPopup(auth, provider).catch((error) => alert("로그인 실패: " + error.code));
     });
     
-    // 로그아웃 처리 로직
+    // 로그아웃
     document.getElementById('btn-logout').addEventListener('click', async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        console.error("로그아웃 통신 지연 무시:", error);
-      } finally {
-        currentUser = null;
-        document.getElementById('btn-login').classList.remove('hidden');
-        document.getElementById('user-info').classList.add('hidden');
-        document.getElementById('btn-save').classList.add('hidden');
-        alert("로그아웃 되었습니다.");
-      }
+      await signOut(auth);
+      alert("로그아웃 되었습니다.");
     });
 
-    // AI 레시피 생성 및 구글 웹앱 서버 통신
+    // 레시피 생성 (클로드 API 호출)
     document.getElementById('btn-generate').addEventListener('click', async () => {
       const ingredients = document.getElementById('ingredients-input').value;
       if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
@@ -131,20 +114,25 @@
       document.getElementById('btn-generate').disabled = true;
 
       try {
+        // 에러 방지용 text/plain 포장지 사용
         const response = await fetch(GAS_URL, {
           method: 'POST',
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8" 
+          },
           body: JSON.stringify({ ingredients: ingredients })
         });
         
         const recipe = await response.json();
         
+        // 백엔드 에러 캐치
         if (recipe.error) {
           throw new Error(recipe.error);
         }
         
         currentRecipe = recipe; 
 
-        // 데이터를 웹 화면에 주입
+        // 결과 렌더링
         document.getElementById('recipe-title').innerText = recipe.recipeName;
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
@@ -156,7 +144,7 @@
         if (currentUser) document.getElementById('btn-save').classList.remove('hidden');
 
       } catch (err) {
-        alert("레시피를 가져오는 데 실패했습니다. 다시 시도해 주세요.");
+        alert("❌ 실패 원인:\n" + err.message);
         console.error("Error Detail:", err);
       } finally {
         document.getElementById('btn-generate').innerText = "요리 시작! 🍳";
@@ -164,22 +152,20 @@
       }
     });
 
-    // TTS(텍스트 음성 변환) 작동 기능
+    // TTS 기능
     document.getElementById('btn-tts').addEventListener('click', () => {
       if(!currentRecipe) return;
       window.speechSynthesis.cancel(); 
-      
       const introText = `${currentRecipe.recipeName} 요리를 시작합니다. 예상 소요시간은 ${currentRecipe.cookingTime}입니다. `;
       const stepsText = currentRecipe.steps.map((step, idx) => `${idx+1}단계, ${step}`).join('. ');
       const closingText = ` 오늘의 지구 구하기 미션인 ${currentRecipe.ecoMessage}를 기억하며 맛있게 드세요!`;
-      
       const utterance = new SpeechSynthesisUtterance(introText + stepsText + closingText);
       utterance.lang = 'ko-KR';
       utterance.rate = 1.0; 
       window.speechSynthesis.speak(utterance);
     });
 
-    // 파이어베이스 Firestore 데이터베이스 보관함에 저장하기
+    // Firestore 저장
     document.getElementById('btn-save').addEventListener('click', async () => {
       if(!currentUser || !currentRecipe) return;
       try {
@@ -194,7 +180,6 @@
         });
         alert("⭐ '나의 요리책'에 안전하게 저장되었습니다!");
       } catch (e) {
-        console.error(e);
         alert("저장 중 오류가 발생했습니다.");
       }
     });
