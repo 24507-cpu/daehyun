@@ -55,7 +55,6 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 파이어베이스 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -67,8 +66,8 @@
       measurementId: "G-6WQ79EBQJY"
     };
 
-    // 🚨 새로 주신 최신 클로드 연동 웹 앱 주소로 교체 완료!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx_3jICArsqn2Oh2DkMZOpwnjSFyGxDMbsHGJwCXIlb9tVOicxS5HJDhKfO9OdLyJKC/exec";
+    // 🚨 방금 발급받으신 최신 주소 매끄럽게 장착 완료!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyjLY1oZ8z4wiFwYxqZUzJQlus1TkcbCx9vnvahB1TRgFbZTR35UxCASKAO-LKsgitA/exec";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -78,7 +77,6 @@
     let currentUser = null;
     let currentRecipe = null; 
 
-    // 로그인 상태 감지
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -94,18 +92,15 @@
       }
     });
 
-    // 구글 로그인
     document.getElementById('btn-login').addEventListener('click', () => {
       signInWithPopup(auth, provider).catch((error) => alert("로그인 실패: " + error.code));
     });
     
-    // 로그아웃
     document.getElementById('btn-logout').addEventListener('click', async () => {
       await signOut(auth);
       alert("로그아웃 되었습니다.");
     });
 
-    // 레시피 생성 (클로드 API 호출)
     document.getElementById('btn-generate').addEventListener('click', async () => {
       const ingredients = document.getElementById('ingredients-input').value;
       if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
@@ -124,14 +119,12 @@
         
         const recipe = await response.json();
         
-        // 백엔드 에러 캐치
         if (recipe.error) {
           throw new Error(recipe.error);
         }
         
         currentRecipe = recipe; 
 
-        // 결과 화면에 뿌리기
         document.getElementById('recipe-title').innerText = recipe.recipeName;
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
@@ -151,7 +144,6 @@
       }
     });
 
-    // TTS 음성 리딩 기능
     document.getElementById('btn-tts').addEventListener('click', () => {
       if(!currentRecipe) return;
       window.speechSynthesis.cancel(); 
@@ -164,7 +156,6 @@
       window.speechSynthesis.speak(utterance);
     });
 
-    // Cloud Firestore 데이터베이스 저장 기능
     document.getElementById('btn-save').addEventListener('click', async () => {
       if(!currentUser || !currentRecipe) return;
       try {
