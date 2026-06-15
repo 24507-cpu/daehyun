@@ -55,7 +55,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 유저님의 파이어베이스 설정값
+    // 파이어베이스 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
       authDomain: "test-ba7e7.firebaseapp.com",
@@ -67,8 +67,8 @@
       measurementId: "G-6WQ79EBQJY"
     };
 
-    // 🚨 방금 올려주신 최신 클로드 연동 웹 앱 주소 탑재 완료!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyo_arMvQDdMw5SQxel1H3DewhWx6Gy5pJDvokztwTjVyqgkwqQ3fVFcWRXHyj1UVth/exec";
+    // 🚨 새로 주신 최신 클로드 연동 웹 앱 주소로 교체 완료!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx_3jICArsqn2Oh2DkMZOpwnjSFyGxDMbsHGJwCXIlb9tVOicxS5HJDhKfO9OdLyJKC/exec";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -114,7 +114,6 @@
       document.getElementById('btn-generate').disabled = true;
 
       try {
-        // 에러 방지용 text/plain 포장지 사용
         const response = await fetch(GAS_URL, {
           method: 'POST',
           headers: {
@@ -132,7 +131,7 @@
         
         currentRecipe = recipe; 
 
-        // 결과 렌더링
+        // 결과 화면에 뿌리기
         document.getElementById('recipe-title').innerText = recipe.recipeName;
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
@@ -152,7 +151,7 @@
       }
     });
 
-    // TTS 기능
+    // TTS 음성 리딩 기능
     document.getElementById('btn-tts').addEventListener('click', () => {
       if(!currentRecipe) return;
       window.speechSynthesis.cancel(); 
@@ -165,7 +164,7 @@
       window.speechSynthesis.speak(utterance);
     });
 
-    // Firestore 저장
+    // Cloud Firestore 데이터베이스 저장 기능
     document.getElementById('btn-save').addEventListener('click', async () => {
       if(!currentUser || !currentRecipe) return;
       try {
