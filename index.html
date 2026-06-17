@@ -1,355 +1,188 @@
 <!DOCTYPE html>
-
 <html lang="ko">
-
 <head>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>🥦 냉장고 파먹기 연구소</title>
-
   <style>
-
     body { font-family: 'Malgun Gothic', sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; line-height: 1.6; background-color: #f9f9f9; }
-
     .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-
     .hidden { display: none; }
-
     button { background-color: #2E7D32; color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 14px; }
-
     button:hover { background-color: #1B5E20; }
-
     input { width: 75%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
-
     #recipe-steps p { background: #f1f8e9; padding: 10px; border-radius: 6px; margin: 5px 0; border-left: 4px solid #8bc34a; }
-
   </style>
-
 </head>
-
 <body>
 
-
-
   <h1>🥦 지구를 구하는 AI 레시피 연구소</h1>
-
   
-
   <div id="auth-section" class="card">
-
     <h3>로그인 후 나만의 레시피 북을 채워보세요!</h3>
-
     <button id="btn-login">Google 계정으로 로그인</button>
-
     <div id="user-info" class="hidden">
-
       <p>👋 <span id="user-name" style="font-weight: bold;"></span>님 환영합니다! 환경을 함께 지켜요. 🌍</p>
-
       <button id="btn-logout" style="background-color: #757575;">로그아웃</button>
-
     </div>
-
   </div>
-
-
 
   <div class="card">
-
     <h3>남은 재료 입력</h3>
-
     <div style="display: flex; gap: 10px;">
-
       <input type="text" id="ingredients-input" placeholder="예: 찬밥, 쌈장, 먹다남은 치킨">
-
       <button id="btn-generate">요리 시작! 🍳</button>
-
     </div>
-
   </div>
-
-
 
   <div id="result-section" class="card hidden">
-
     <h2 id="recipe-title" style="color: #2E7D32;">요리 이름</h2>
-
     <p>⏱️ <b>예상 조리 시간:</b> <span id="cooking-time"></span></p>
-
     <p style="color: #E65100; font-weight: bold; background: #FFF3E0; padding: 10px; border-radius: 6px;">🌱 <b>지구 구하기 미션:</b> <span id="eco-msg"></span></p>
-
     <hr style="border: 0.5px solid #eee;">
-
     
-
     <div id="recipe-steps"></div>
-
     
-
     <hr style="border: 0.5px solid #eee; margin-top: 20px;">
-
     <div style="display: flex; gap: 10px; margin-top: 15px;">
-
       <button id="btn-tts" style="background-color: #0288D1;">🔊 음성 가이드 듣기</button>
-
       <button id="btn-save" class="hidden" style="background-color: #FFA000;">⭐ 나의 요리책에 저장</button>
-
     </div>
-
   </div>
 
-
-
   <script type="module">
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-
+    // 🔥 Firestore 대신 Realtime Database 모듈을 불러옵니다.
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
-
       apiKey: "AIzaSyALwZj6PbImDMxo0FAiUNVIqn_A-gRlZnE",
-
       authDomain: "test-ba7e7.firebaseapp.com",
-
       databaseURL: "https://test-ba7e7-default-rtdb.firebaseio.com",
-
       projectId: "test-ba7e7",
-
       storageBucket: "test-ba7e7.firebasestorage.app",
-
       messagingSenderId: "700659947641",
-
       appId: "1:700659947641:web:e62c9601ae47aeaa319ca8",
-
       measurementId: "G-6WQ79EBQJY"
-
     };
-
-
-
-    // 🚨 방금 발급받으신 최신 주소 매끄럽게 장착 완료!
 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbywrnvvDZ2TL8tUGCXxv_lkjYljoPsEuIlGzTwuPlMs_RVZ7uNyY0gDPdAs85CyY28n/exec";
 
-
-
     const app = initializeApp(firebaseConfig);
-
     const auth = getAuth(app);
-
-    const db = getFirestore(app);
-
+    // 🔥 Database 인스턴스 초기화
+    const db = getDatabase(app);
     const provider = new GoogleAuthProvider();
 
-
-
     let currentUser = null;
-
     let currentRecipe = null; 
 
-
-
     onAuthStateChanged(auth, (user) => {
-
       if (user) {
-
         currentUser = user;
-
         document.getElementById('btn-login').classList.add('hidden');
-
         document.getElementById('user-info').classList.remove('hidden');
-
         document.getElementById('user-name').innerText = user.displayName || "사용자";
-
         if(currentRecipe) document.getElementById('btn-save').classList.remove('hidden');
-
       } else {
-
         currentUser = null;
-
         document.getElementById('btn-login').classList.remove('hidden');
-
         document.getElementById('user-info').classList.add('hidden');
-
         document.getElementById('btn-save').classList.add('hidden');
-
       }
-
     });
-
-
 
     document.getElementById('btn-login').addEventListener('click', () => {
-
       signInWithPopup(auth, provider).catch((error) => alert("로그인 실패: " + error.code));
-
     });
-
     
-
     document.getElementById('btn-logout').addEventListener('click', async () => {
-
       await signOut(auth);
-
       alert("로그아웃 되었습니다.");
-
     });
-
-
 
     document.getElementById('btn-generate').addEventListener('click', async () => {
-
       const ingredients = document.getElementById('ingredients-input').value;
-
       if(!ingredients) return alert("냉장고에 남은 재료를 입력해 주세요!");
 
-
-
       document.getElementById('btn-generate').innerText = "AI 셰프가 고민 중...🤔";
-
       document.getElementById('btn-generate').disabled = true;
 
-
-
       try {
-
         const response = await fetch(GAS_URL, {
-
           method: 'POST',
-
           headers: {
-
             "Content-Type": "text/plain;charset=utf-8" 
-
           },
-
           body: JSON.stringify({ ingredients: ingredients })
-
         });
-
         
-
         const recipe = await response.json();
-
         
-
         if (recipe.error) {
-
           throw new Error(recipe.error);
-
         }
-
         
-
         currentRecipe = recipe; 
 
-
-
         document.getElementById('recipe-title').innerText = recipe.recipeName;
-
         document.getElementById('cooking-time').innerText = recipe.cookingTime;
-
         document.getElementById('eco-msg').innerText = recipe.ecoMessage;
-
         
-
         const stepsContainer = document.getElementById('recipe-steps');
-
         stepsContainer.innerHTML = recipe.steps.map((step, idx) => `<p><b>${idx+1}단계:</b> ${step}</p>`).join('');
-
         
-
         document.getElementById('result-section').classList.remove('hidden');
-
         if (currentUser) document.getElementById('btn-save').classList.remove('hidden');
 
-
-
       } catch (err) {
-
         alert("❌ 실패 원인:\n" + err.message);
-
         console.error("Error Detail:", err);
-
       } finally {
-
         document.getElementById('btn-generate').innerText = "요리 시작! 🍳";
-
         document.getElementById('btn-generate').disabled = false;
-
       }
-
     });
-
-
 
     document.getElementById('btn-tts').addEventListener('click', () => {
-
       if(!currentRecipe) return;
-
       window.speechSynthesis.cancel(); 
-
       const introText = `${currentRecipe.recipeName} 요리를 시작합니다. 예상 소요시간은 ${currentRecipe.cookingTime}입니다. `;
-
       const stepsText = currentRecipe.steps.map((step, idx) => `${idx+1}단계, ${step}`).join('. ');
-
       const closingText = ` 오늘의 지구 구하기 미션인 ${currentRecipe.ecoMessage}를 기억하며 맛있게 드세요!`;
-
       const utterance = new SpeechSynthesisUtterance(introText + stepsText + closingText);
-
       utterance.lang = 'ko-KR';
-
       utterance.rate = 1.0; 
-
       window.speechSynthesis.speak(utterance);
-
     });
 
-
-
+    // 🔥 Realtime Database에 저장하는 로직
     document.getElementById('btn-save').addEventListener('click', async () => {
-
       if(!currentUser || !currentRecipe) return;
-
       try {
-
-        await addDoc(collection(db, "userRecipes"), {
-
-          uid: currentUser.uid,
-
+        // userRecipes 아래에 유저 고유 ID(uid) 폴더를 참조
+        const recipeRef = ref(db, 'userRecipes/' + currentUser.uid);
+        
+        // 새로운 고유 키를 생성
+        const newRecipeRef = push(recipeRef);
+        
+        // 데이터 저장
+        await set(newRecipeRef, {
           userEmail: currentUser.email,
-
           recipeName: currentRecipe.recipeName,
-
           cookingTime: currentRecipe.cookingTime,
-
           ecoMessage: currentRecipe.ecoMessage,
-
           steps: currentRecipe.steps,
-
-          savedAt: new Date()
-
+          savedAt: new Date().toISOString() // Realtime DB 호환을 위해 ISO 문자열로 저장
         });
-
+        
         alert("⭐ '나의 요리책'에 안전하게 저장되었습니다!");
-
       } catch (e) {
-
+        console.error("Save error:", e);
         alert("저장 중 오류가 발생했습니다.");
-
       }
-
     });
-
   </script>
-
 </body>
-
 </html>
